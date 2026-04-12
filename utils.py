@@ -366,28 +366,6 @@ class weighted_masked_nt_xent(nn.Module):
         # print(f"loss: {loss.item():.4f}")
 
 
-
-class ResNet18_28x28(nn.Module):
-    def __init__(self, num_classes=None, dropout_rate=None, in_channels=3):
-        super(ResNet18_28x28, self).__init__()
-        self.dropout_rate = dropout_rate
-        self.resnet = models.resnet18(weights=None)
-
-        # Modify initial layers for small images (28x28)
-        # Use a smaller kernel and stride 1 to preserve spatial information
-        self.resnet.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.resnet.maxpool = nn.Identity()
-
-        # Replace the final fully connected layer
-        num_ftrs = self.resnet.fc.in_features
-        self.resnet.fc = nn.Linear(num_ftrs, num_classes)
-        
-        self.resnet.fc = nn.Sequential(
-            nn.Dropout(p=dropout_rate), 
-            nn.Linear(num_ftrs, num_classes)
-        )
-
-
 def macro_accuracy(true_labels, pred_labels):
     """
     Calculate macro-averaged accuracy using confusion matrix.
