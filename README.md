@@ -1,6 +1,8 @@
 # DeepPolyCL-SMOTE: A Supervised Contrastive Framework for Deep Latent Space Oversampling
 
-  This repository contains the code for the DeepCLSMOTE method, a deep learning-based image augmentation technique designed to address class imbalance in multi-class image classification. It extends the DeepSMOTE approach by explicitly optimizing the latent space using class centroids, leading to improved class separability and classification performance.
+  This repository provides the implementation of DeepPolyCL-SMOTE, a deep learning-based data augmentation framework designed to address class imbalance in multi-class image classification. The proposed method extends DeepSMOTE by integrating centroid-guided supervised contrastive learning to explicitly structure the latent space, followed by nonlinear latent interpolation (pf-SMOTE with Mesh topology) for generating high-quality synthetic samples.
+
+Unlike conventional linear interpolation methods, DeepPolyCL-SMOTE produces smoother and more class-consistent samples by leveraging a well-structured latent representation, resulting in improved class separability and classification performance.
   
 ## Datasets
 This implementation was evaluated on the following publicly available image datasets:
@@ -10,33 +12,37 @@ This implementation was evaluated on the following publicly available image data
 
 ## Code Information
 The main files in this repository are:
-DeepCLSMOTE/  
-├── main.py     # Jupyter Notebook containing all the code   
-├── utils.py     # Jupyter Notebook containing all the code  
-├── README.md            # This file 
+DeepPolyCLSMOTE/
+├── main.py        # Main training and evaluation pipeline (Notebook/script)
+├── utils.py       # Utility functions
+├── README.md      # Project documentation
 
 ## Usage Instructions
-All the steps for data preparation, model training (both the baseline CNN and DeepCLSMOTE), synthetic sample generation , and evaluation are contained within the `DeepCLSMOTE.ipynb` Jupyter Notebook.
+All steps—including data preparation, model training, latent-space oversampling, and evaluation—are implemented in the main notebook/script.
 
 To run the experiments:
-
-1.  **Open the Notebook:** Navigate to the repository directory in your terminal and open the `DeepCLSMOTE.ipynb` file using Jupyter Notebook or JupyterLab:
-
-    ```bash
-    jupyter notebook DeepCLSMOTE.ipynb
+1.  **Open the Notebook:**
+    jupyter notebook DeepPolyCLSMOTE.ipynb
     # or
-    jupyter lab DeepCLSMOTE.ipynb
-    ```
+    jupyter lab DeepPolyCLSMOTE.ipynb
 
-2.  **Execute Cells:** Follow the instructions and execute the cells sequentially within the notebook. The notebook is structured to perform the following steps:
-    * **Data Preparation:** Loads the image datasets (Directly from Pytorch [Image Datasets](https://docs.pytorch.org/vision/stable/datasets.html)), potentially creating imbalanced distributions as needed.
-    * **Baseline CNN Training and Testing:** Trains a simple CNN on the imbalanced data and evaluates its performance.
-    * **DeepCLSMOTE Training:** Trains the DeepCLSMOTE model on the imbalanced data.
-    * **Synthetic Sample Generation :** Generates synthetic minority class samples using a trained DeepCLSMOTE.
-    * **Training CNN with Balanced Data:** Trains a CNN on the augmented (balanced) dataset.
-    * **Evaluation:** Evaluates the performance of the models using appropriate metrics on train-test splits or through cross-validation as described in the paper.
-
-3.  **Configuration:** You may need to modify certain variables within the notebook cells (e.g., file paths, dataset parameters) to match your specific setup.
+2.  **Execute Cells Sequentially:**
+   
+    The pipeline includes:
+    * Data Preparation:
+    Load datasets (via PyTorch datasets) and simulate long-tailed imbalance.
+    * Baseline Model Training:
+    Train a CNN on imbalanced data for comparison.
+    * Representation Learning (Phase I):
+      Train an autoencoder with:
+      * Reconstruction loss (MSE)
+      * Centroid-guided supervised contrastive loss
+    * Latent-space Oversampling (Phase II):
+    Generate synthetic samples using pf-SMOTE (Mesh topology) in latent space.
+    * Balanced Training:
+    Train a classifier (e.g., ResNet) on the augmented dataset.
+    * Evaluation:
+    Evaluate performance using metrics such as F1-score, ASCA, and BHR.
 
 ## Requirements:
 PyTorch   
