@@ -107,11 +107,6 @@ def calculate_all_metrics(true_labels, predicted_labels, num_classes= args['num_
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
-def biased_get_class1(c, data, target):
-    mask = (target == c)
-    return data[mask], target[mask]
-
-
 class AugmentedTensorDataset(torch.utils.data.Dataset):
     def __init__(self, data, labels, dataset_name='cifar10', train=True):
         self.data = data
