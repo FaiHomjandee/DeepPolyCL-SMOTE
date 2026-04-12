@@ -470,7 +470,18 @@ def DeepPolyCL_SMOTE(params, fold_data_loaders, imbalanced_train_list):
     best_encoder_state = None
     best_decoder_state = None
 
-    
+
+    latent_all, label_all = extract_latents(encoder, train_loader_ae, device)
+
+            class_weights = get_class_weights(
+                labels_list=label_all,
+                Z=latent_all,
+                num_classes=args['num_class'],
+                method="effective_variance",   
+            ).to(device)
+    print(f"Class weights: {class_weights}")
+
+   
     # =========================================================
     # Training Loop
     # =========================================================
@@ -483,90 +494,35 @@ def DeepPolyCL_SMOTE(params, fold_data_loaders, imbalanced_train_list):
         mse_loss_epoch = 0.0
         contrastive_loss_epoch = 0.0
         num_batches = 0
-
-        # ---- Compute class weights AFTER warmup ----
-        if epoch == warmup_epochs or (epoch > warmup_epochs and epoch % update_weight_every == 200):
-
-            print(f"\n🔁 Computing class weights at epoch {epoch} ...")
-
-            latent_all, label_all = extract_latents(encoder, train_loader_ae, device)
-
-            class_weights = get_class_weights(
-                labels_list=label_all,
-                Z=latent_all,
-                num_classes=args['num_class'],
-                method="effective_variance",   
-            ).to(device)
-
-            print(f"Class weights: {class_weights}")
-
+        
         for images, labs in train_loader_ae:
 
             images, labs = images.to(device), labs.to(device)
-            # Check the range of pixel values in the batch
-            # imgs, _ = next(iter(train_loader_ae))
-            # print(imgs.min().item(), imgs.max().item())
             z_hat, list_class_latent = encoder(images, labs)
             x_hat = decoder(z_hat)
-            # print("images:", images.min().item(), images.max().item())
-            # print("x_hat:", x_hat.min().item(), x_hat.max().item())
-            # print(f"images mean/std: {images.mean().item():.4f}, {images.std().item():.4f}")
-            # print(f"x_hat mean/std: {x_hat.mean().item():.4f}, {x_hat.std().item():.4f}")
 
             mse = criterion_mse(x_hat, images)
-            # print(f"MSE: {mse.item():.4f}")
 
-            # =====================
-            # Warm-up phase
-            # =====================
-            if epoch < warmup_epochs:
-                # loss = mse
-                # View 1
-                view1 = F.normalize(z_hat, dim=1)
+            # View 1
+            view1 = F.normalize(z_hat, dim=1)
 
-                # View 2 (class prototype aligned)
-                view2 = torch.zeros_like(z_hat)
-                for c in range(args['num_class']):
-                    mask = (labs == c)
-                    if mask.sum() > 0:
-                        view2[mask] = list_class_latent[c]
-                view2 = F.normalize(view2, dim=1)
+            # View 2 (class prototype aligned)
+            view2 = torch.zeros_like(z_hat)
+            for c in range(args['num_class']):
+                mask = (labs == c)
+                if mask.sum() > 0:
+                    view2[mask] = list_class_latent[c]
+            view2 = F.normalize(view2, dim=1)
 
-                # Projection head
-                h1 = F.normalize(proj_head(view1), dim=1)
-                h2 = F.normalize(proj_head(view2), dim=1)
+            # Projection head
+            h1 = F.normalize(proj_head(view1), dim=1)
+            h2 = F.normalize(proj_head(view2), dim=1)
+            
+            # print(labs, class_weights)
+            # print(f"h1{h1.min()} {h1.max()} | h2 {h2.min()} {h2.max()}")
+            loss_nt_xent = criterion_nt(h1, h2, labs, temperature, class_weights)
 
-                # print(labs, class_weights)
-                
-                loss_nt_xent = criterion_nt(h1, h2, labs, temperature, class_weights)
-
-                loss = alpha * mse + (1 - alpha) * loss_nt_xent
-
-            # =====================
-            # Main training phase
-            # =====================
-            else:
-                
-                # View 1
-                view1 = F.normalize(z_hat, dim=1)
-
-                # View 2 (class prototype aligned)
-                view2 = torch.zeros_like(z_hat)
-                for c in range(args['num_class']):
-                    mask = (labs == c)
-                    if mask.sum() > 0:
-                        view2[mask] = list_class_latent[c]
-                view2 = F.normalize(view2, dim=1)
-
-                # Projection head
-                h1 = F.normalize(proj_head(view1), dim=1)
-                h2 = F.normalize(proj_head(view2), dim=1)
-                
-                # print(labs, class_weights)
-                # print(f"h1{h1.min()} {h1.max()} | h2 {h2.min()} {h2.max()}")
-                loss_nt_xent = criterion_nt(h1, h2, labs, temperature, class_weights)
-
-                loss = alpha * mse + (1 - alpha) * loss_nt_xent
+            loss = alpha * mse + (1 - alpha) * loss_nt_xent
                 
             
             enc_optim.zero_grad()
@@ -600,8 +556,7 @@ def DeepPolyCL_SMOTE(params, fold_data_loaders, imbalanced_train_list):
             best_loss = avg_train_loss
             best_encoder_state = copy.deepcopy(encoder.state_dict())
             best_decoder_state = copy.deepcopy(decoder.state_dict())
-            
-        
+               
         
     print(f"The best loss :{best_loss:.4f}")
     print(f"\n✓ Autoencoder training complete!")
