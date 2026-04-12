@@ -161,7 +161,7 @@ class AugmentedTensorDataset(torch.utils.data.Dataset):
         return x, y
 
      
-class EncoderCL32(nn.Module):
+class EncoderCL(nn.Module):
     def __init__(self, args):
         super(EncoderCL32, self).__init__()
         self.n_z = args['n_z']
@@ -219,7 +219,7 @@ class EncoderCL32(nn.Module):
         return latent_z_mixed, list_class_latent
 
 
-class DecoderCL32(nn.Module):
+class DecoderCL(nn.Module):
     def __init__(self, args):
         super(DecoderCL32, self).__init__()
         self.dim_h = args['dim_h']
@@ -266,64 +266,6 @@ class ProjectionHead(nn.Module):
 
     def forward(self, x):
         return self.net(x)
-     
-# --- Model Class Definitions ---
-class EncoderCL(nn.Module):
-    def __init__(self, args):
-        super(EncoderCL, self).__init__()
-        self.n_z=args['n_z']; self.dim_h=args['dim_h']; self.num_class=args['num_class']
-        self.conv = nn.Sequential(
-            nn.Conv2d(args['n_channel'],self.dim_h,4,2,1), nn.LeakyReLU(0.2,inplace=True),
-            nn.Conv2d(self.dim_h,self.dim_h*2,4,2,1), nn.BatchNorm2d(self.dim_h*2), nn.LeakyReLU(0.2,inplace=True),
-            nn.Conv2d(self.dim_h*2,self.dim_h*4,3,1,0), nn.BatchNorm2d(self.dim_h*4), nn.LeakyReLU(0.2,inplace=True),
-            nn.Conv2d(self.dim_h*4,self.dim_h*8,3,1,0), nn.BatchNorm2d(self.dim_h*8), nn.LeakyReLU(0.2,inplace=True),
-        )
-        self.fc = nn.Linear(self.dim_h*8*3*3, self.n_z)
-        
-        # --- Part 2: The Learnable Class Centroids ---
-        self.class_centroids = nn.Embedding(num_embeddings=self.num_class, embedding_dim=self.n_z)
-        nn.init.normal_(self.class_centroids.weight, mean=0, std=0.1)  
-
-    def forward(self, x, labels):
-        features = self.conv(x)
-        flat_features = torch.flatten(features, start_dim=1)
-        latent_z_mixed = self.fc(flat_features) # This is z_hat
-        
-        # Step B: Look up the corresponding learnable centroid for each instance
-        # The labels tensor is used as indices to fetch the correct centroid vector.
-        centroid_vectors = self.class_centroids(labels)
-        
-        return latent_z_mixed, centroid_vectors
-
-class DecoderCL(nn.Module):
-    def __init__(self, args):
-        super(DecoderCL, self).__init__()
-        self.dim_h=args['dim_h']; self.n_z=args['n_z']; self.n_channel=args['n_channel']
-        self.fc = nn.Sequential(nn.Linear(self.n_z,self.dim_h*8*3*3), nn.ReLU())
-        self.deconv = nn.Sequential(
-            nn.ConvTranspose2d(self.dim_h*8,self.dim_h*4,3,1,0), nn.BatchNorm2d(self.dim_h*4), nn.ReLU(True),
-            nn.ConvTranspose2d(self.dim_h*4,self.dim_h*2,3,1,0), nn.BatchNorm2d(self.dim_h*2), nn.ReLU(True),
-            nn.ConvTranspose2d(self.dim_h*2,self.dim_h,4,2,1), nn.BatchNorm2d(self.dim_h), nn.ReLU(True),
-            nn.ConvTranspose2d(self.dim_h,self.n_channel,4,2,1), nn.Tanh()
-        )
-    def forward(self, z):
-        x = self.fc(z); x = x.view(-1, self.dim_h * 8, 3, 3); x = self.deconv(x); return x
-        
-class NTXentLoss(nn.Module):
-    def __init__(self): 
-        super(NTXentLoss,self).__init__()
-
-    def forward(self, z_i, z_j,temperature):
-        z = torch.cat([z_i, z_j], dim=0) 
-        z = F.normalize(z, dim=1)
-        similarity = torch.matmul(z, z.T); N = z_i.shape[0]
-        mask = (~torch.eye(2*N, dtype=bool)).to(z.device)
-        sim = similarity / temperature; exp_sim = torch.exp(sim) * mask
-        positive_sim = torch.exp(F.cosine_similarity(z_i, z_j) / temperature)
-        positives = torch.cat([positive_sim, positive_sim], dim=0)
-        denominator = exp_sim.sum(dim=1)
-        loss = -torch.log(positives / denominator)
-        return loss.mean()
 
 class masked_nt_xent(nn.Module):
     def __init__(self):
@@ -423,66 +365,6 @@ class weighted_masked_nt_xent(nn.Module):
         loss = loss / (2*B) #math.log(2 * B)
         # print(f"loss: {loss.item():.4f}")
 
-        return loss
-
-class weighted_masked_nt_xent_noweight(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, z_i, z_j, labels, temperature):
-        """
-        z_i, z_j: [B, D]
-        labels: [B]
-        class_weights: [num_classes]
-        """
-
-        device = z_i.device
-
-        labels_orig = labels.long().to(device)  # [B]
-
-        B = z_i.size(0)
-
-        # Concatenate views
-        z = torch.cat([z_i, z_j], dim=0)        # [2B, D]
-        z = F.normalize(z, dim=1)
-
-        # Similarity matrix
-        sim = torch.matmul(z, z.T) / temperature
-        sim = sim - torch.max(sim, dim=1, keepdim=True)[0].detach()
-
-        # Build labels for 2B
-        labels_all = torch.cat([labels_orig, labels_orig], dim=0)  # [2B]
-
-        # Positive mask (same class)
-        mask = torch.eq(
-            labels_all.unsqueeze(1),
-            labels_all.unsqueeze(0)
-        ).float().to(device)
-
-        # Remove self-comparisons
-        self_mask = torch.eye(2*B, device=device)
-        mask = mask - self_mask
-
-        # # Log-softmax denominator
-        exp_sim = torch.exp(sim) * (1 - self_mask)
-        log_prob = sim - torch.log(exp_sim.sum(dim=1, keepdim=True) + 1e-8)
-
-        # log_prob = sim - torch.logsumexp(sim.masked_fill(self_mask.bool(), -1e9), dim=1, keepdim=True)
-
-        # Mean log-prob over positives
-        pos_count = mask.sum(1).clamp(min=1)
-        mean_log_prob_pos = (mask * log_prob).sum(1) / pos_count
-
-
-        # Final weighted loss
-        # sample_weights = 1
-        loss = - (mean_log_prob_pos).mean()
-        # print(f"Mean log-prob of positives: {mean_log_prob_pos.mean().item():.4f}")
-
-        loss = loss / (2*B) #math.log(2 * B)
-        # print(f"loss: {loss.item():.4f}")
-
-        return loss
 
 
 class ResNet18_28x28(nn.Module):
@@ -505,55 +387,6 @@ class ResNet18_28x28(nn.Module):
             nn.Linear(num_ftrs, num_classes)
         )
 
-    def forward(self, x):
-        return self.resnet(x)
-    
-class EfficientNetB0_28x28(nn.Module):
-    def __init__(self, num_classes=args['num_class']):
-        super(EfficientNetB0_28x28, self).__init__()
-        
-        # 1. Load the base EfficientNet-B0 model
-        self.efficientnet = models.efficientnet_b0(weights=None)
-
-        # 2. Modify the first layer for 1-channel, 28x28 images
-        #    We use stride=1 to preserve more detail from the small images.
-        self.efficientnet.features[0][0] = nn.Conv2d(args['n_channel'], 32, kernel_size=3, stride=1, padding=1, bias=False)
-
-        # 3. Modify the final classifier layer
-        num_ftrs = self.efficientnet.classifier[1].in_features
-        self.efficientnet.classifier[1] = nn.Linear(num_ftrs, num_classes)
-
-    def forward(self, x):
-        return self.efficientnet(x)
-
-class MobileNetV2_28x28(nn.Module):
-    def __init__(self, num_classes=args['num_class'], n_channel=args['n_channel']):
-        super(MobileNetV2_28x28, self).__init__()
-        
-        # 1. Load the base MobileNetV2 model
-        self.mobilenet = models.mobilenet_v2(weights=None)
-
-        # 2. Modify the first layer for 1-channel, 28x28 images
-        # The original stride=2 is too aggressive for 28x28, so we change it to 1.
-        self.mobilenet.features[0][0] = nn.Conv2d(n_channel, 32, kernel_size=3, stride=1, padding=1, bias=False)
-
-        # 3. Modify the final classifier layer
-        num_ftrs = self.mobilenet.classifier[1].in_features
-        self.mobilenet.classifier[1] = nn.Linear(num_ftrs, num_classes)
-
-    def forward(self, x):
-        return self.mobilenet(x)
-    
-class FocalLoss(nn.Module):
-    def __init__(self, gamma=2.0):
-        super(FocalLoss, self).__init__()
-        self.gamma = gamma
-
-    def forward(self, logits, targets):
-        ce_loss = F.cross_entropy(logits, targets, reduction='none')
-        pt = torch.exp(-ce_loss)  # probability of true class
-        focal_loss = ((1 - pt) ** self.gamma * ce_loss).mean()
-        return focal_loss
 
 def macro_accuracy(true_labels, pred_labels):
     """
@@ -595,27 +428,6 @@ def macro_accuracy(true_labels, pred_labels):
     
     # Return macro average
     return np.mean(class_accuracies)
-class SimpleCNN(nn.Module):
-    def __init__(self, num_classes):  # 10 classes for MNIST digits (0-9)
-        super(SimpleCNN, self).__init__()
-        self.conv1 = nn.Conv2d(args['n_channel'], 32, kernel_size=3, padding=1)  # Input channels = 1 for grayscale
-        self.relu1 = nn.ReLU()
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.relu2 = nn.ReLU()
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.flatten = nn.Flatten()
-        self.fc1 = nn.Linear(64 * 7 * 7, 128)  # Adjusted input size for fc1 (7x7 after pooling)
-        self.relu3 = nn.ReLU()
-        self.fc2 = nn.Linear(128, num_classes)
-
-    def forward(self, x):
-        x = self.pool1(self.relu1(self.conv1(x)))
-        x = self.pool2(self.relu2(self.conv2(x)))
-        x = self.flatten(x)
-        x = self.relu3(self.fc1(x))
-        x = self.fc2(x)
-        return x
     
 def extract_latents(model, loader, device):
     model.eval()
