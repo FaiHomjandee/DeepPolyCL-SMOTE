@@ -15,18 +15,9 @@ import numpy as np
 import setproctitle
 
 # Import the tools you need from your utils file
-# from utilsGRAY_cnn import run_single_fold_selfCLSMOTE_selfsup,run_single_fold_selfCLSMOTE_supcon,run_single_fold_selfCLSMOTE_l2
-from defs_CoSMO import run_cosmo_supcon,run_l2_smote_variants,run_single_fold_selfCLSMOTE_selfsup,run_single_fold_DeepSMOTE,run_single_fold_BAGAN,run_single_fold_GAMO,run_single_fold_imbalanced_baseline,run_single_fold_GAMO5,run_single_fold_selfCLSMOTE_l2,run_single_fold_selfCLSMOTE_supcon, run_single_fold_selfCLSMOTE_selfsup_warmup,run_single_fold_selfCLSMOTE_l2,run_single_fold_selfCLSMOTE_supcon, run_single_fold_selfCLSMOTE_selfsup_rgb, run_single_fold_imbalanced_baseline
-# from utilsGRAY_combine_latent import run_single_fold_selfCLSMOTE_selfsup,run_single_fold_DeepSMOTE,train_deepsmote_selfclsmote_comparison,train_deepsmote_selfclsmote_comparison_animation
-# from utilsRGB_combine_10folds import run_single_fold_selfCLSMOTE_selfsup,run_single_fold_DeepSMOTE,run_single_fold_BAGAN,run_single_fold_GAMO,run_single_fold_imbalanced_baseline,run_single_fold_GAMO3,run_single_fold_GAMO4,run_single_fold_GAMO5
+from defs_CoSMO import run_cosmo_supcon,run_l2_smote_variants
 
-# from utilsGRAY_eff import run_single_fold_selfCLSMOTE_selfsup,run_single_fold_selfCLSMOTE_supcon,run_single_fold_selfCLSMOTE_l2
-# from utilsGRAY_mobile import run_single_fold_selfCLSMOTE_selfsup,run_single_fold_selfCLSMOTE_supcon,run_single_fold_selfCLSMOTE_l2
-time_start = time.time()
-print('start:',time_start)
-
-# data = 'fmnist'
-data = 'dermamnist'
+data = 'cifar10'
 DATA_DIR = Path("/home/ubuntu/fai_run/project/prepared_data")
 
 if __name__ == "__main__":
@@ -53,7 +44,6 @@ if __name__ == "__main__":
         exit()
     
     # --- 1. Load the data ONCE ---
-    #folds_data, imbalanced_train_dataset_list = load_all_data()
     first_fold_data_loaders = folds_data[0]
     first_fold_imbalanced_list = imbalanced_train_dataset_list[0]
 
@@ -88,12 +78,11 @@ if __name__ == "__main__":
     # # --- 2. Define the grid for THIS model ---
     method = 'CoSMO'
     param_grid = {
-                'lr': [2e-4,1e-4],
-                'alpha': [0.3,0.5,0.7],
-                'temperature': [0.07,0.1],
-                'n_z': [2**6,2**7,2**8],
-                'weight_decay':[5e-4,1e-4],
-                'warmup_epochs': [0],
+                'lr': [2e-4],
+                'alpha': [0.9],
+                'temperature': [0.07],
+                'n_z': [600],
+                'weight_decay':[1e-4],
                 'dataset_name': [data]
     } 
     
