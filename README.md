@@ -12,10 +12,10 @@ This implementation was evaluated on the following publicly available image data
 
 ## Code Information
 The main files in this repository are:
-DeepPolyCLSMOTE/
-├── main.py        # Main training and evaluation pipeline
-├── utils.py       # Utility functions
-├── README.md      # Project documentation
+DeepPolyCLSMOTE/  
+├── main.py        # Main training and evaluation pipeline  
+├── utils.py       # Utility functions  
+├── README.md      # Project documentation 
 
 ## Usage Instructions
 The entire pipeline—including data preparation, model training, latent-space oversampling, and evaluation—is implemented in main.py.
