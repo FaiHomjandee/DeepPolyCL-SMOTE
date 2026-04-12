@@ -31,19 +31,19 @@ To run the experiments:
     python main.py
     ```
 ##  The pipeline overview:
-1. Data Preparation:  
+**1. Data Preparation:**  
 Load datasets (via PyTorch datasets) and simulate long-tailed imbalance.
-2. Baseline Model Training:  
+**2. Baseline Model Training:**  
 Trains a CNN classifier on imbalanced data for comparison.
-3. Representation Learning (Phase I):  
+**3. Representation Learning (Phase I):**  
   Train an autoencoder with:  
   * Reconstruction loss (MSE)
   * Centroid-guided supervised contrastive loss
-4. Latent-space Oversampling (Phase II):  
+**4. Latent-space Oversampling (Phase II):**  
 Generate synthetic samples using pf-SMOTE (Mesh topology) in latent space.
-5. Balanced Training:  
+**5. Balanced Training:**  
 Train a classifier (e.g., ResNet) on the augmented dataset.
-6. Evaluation:  
+**6. Evaluation:**  
 Reports performance using metrics such as F1-score, ASCA, and BHR.
 
 ## Requirements:
