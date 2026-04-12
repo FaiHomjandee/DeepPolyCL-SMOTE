@@ -56,7 +56,6 @@ To run the experiments:
 - scikit-learn
 - SciPy
 - matplotlib
-- tqdm
 - smote-variants
 
 ## Citations: 
