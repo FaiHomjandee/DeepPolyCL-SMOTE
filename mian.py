@@ -85,64 +85,7 @@ if __name__ == "__main__":
                 'weight_decay':[1e-4],
                 'dataset_name': [data]
     } 
-    
-    # Default
-    # param_grid = {
-    #     lr': [0.0002, 0.001],
-    #     alpha': [0.7, 0.5, 0.3],
-    #     temperature': [0.07, 0.1],
-    #     n_z': [300],
-    #     weight_decay':[0.0005, 0.001]
-    #     }
-    
-    # --- 2. DeepSMOTE ---
-    # method = 'DeepSMOTE'
-    # param_grid = {
-    #     'lr': [0.0002],   
-    #     'n_z': [600],#20], #[600], 
-    #     'dataset_name': [data]
-    #     # Latent comparison animation
-    #     # 'save_latent_anim': [True],
-    #     # 'anim_separate': [False],
-    #     # 'save_latent_compare_anim': [True],
-    #     # 'latent_compare_method': ['pca_tsne'],  # 'pca', 'tsne', 'pca_tsne','umap'
-    # }
-    
-    # --- 2. BAGAN ---
-    # method = 'BAGAN'
-    # param_grid = {
-    #     'lr_g': [2e-4],   
-    #     'lr_d': [2e-4], 
-    #     'n_z': [600], 
-    #     'dataset_name':[data]
-    # }
-    
-    # # --- 2. GAMO ---
-    # method = 'GAMO'
-    # param_grid = {
-    #         'lr_fc': [0.001],
-    #         'lr_gan': [0.0005],
-    #         'n_z': [600],
-    #         'freeze_epochs': [80],
-    #         'warmup_epochs': [20],
-    #         'dataset_name': [data]      
-    # }
-    
-    # ----- l2 --------
-    # param_grid = {
-    #     'lr': [0.0002],   
-    #     'n_z': [300], 
-    #     'weight_decay':[1e-3] 
-    # }
-    
-    # # ----- plain ----
-    # method = 'Baseline'
-    # param_grid = {
-    #     'dataset_name': [data]      
-    # }
-    
-    
-    # model = {'DeepSMOTE','DeepSMOTE','BAGAN','GAMO'}
+     
     path = '/home/ubuntu/fai_run/project/'
 
     results_filepath1_resnet = f"{path}Results_{method}_avg_{data}_size32_avg50_IMG.csv"
@@ -183,12 +126,6 @@ if __name__ == "__main__":
                                                 current_fold_imbalanced_list
                                                 # fold_idx
                                             )
-
-            # f1,asca,g_mean,per_class_results = run_single_fold_imbalanced_baseline(
-            #                                     params,
-            #                                     current_fold_loaders, 
-            #                                     current_fold_imbalanced_list
-            #                                 )
             
             fold_f1_scores.append(f1)
             fold_asca_scores.append(asca)
