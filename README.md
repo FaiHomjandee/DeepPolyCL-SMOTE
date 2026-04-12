@@ -27,8 +27,9 @@ To run the experiments:
     ```
 
 3.  **Run the main script:**
+    ```bash
     python main.py
-   
+    ```
 ##  The pipeline overview:
 * Data Preparation:
 Load datasets (via PyTorch datasets) and simulate long-tailed imbalance.
