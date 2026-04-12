@@ -7,7 +7,7 @@ Unlike conventional linear interpolation methods, DeepPolyCL-SMOTE produces smoo
 ## Datasets
 This implementation was evaluated on the following publicly available image datasets:
 * MNIST: The MNIST database of handwritten digits - [http://yann.lecun.com/exdb/mnist/](http://yann.lecun.com/exdb/mnist/)
-* Fashion-MNIST: A dataset of Zalando's article images (Xiao et al., 2017) - [https://github.com/zalandoresearch/fashion-mnist]  (https://github.com/zalandoresearch/fashion-mnist)
+* Fashion-MNIST: A dataset of Zalando's article images (Xiao et al., 2017) - [https://github.com/zalandoresearch/fashion-mnist]  
 * CIFAR-10: The CIFAR-10 dataset - [https://www.cs.toronto.edu/~kriz/cifar.html](https://www.cs.toronto.edu/~kriz/cifar.html)  
 
 ## Code Information
