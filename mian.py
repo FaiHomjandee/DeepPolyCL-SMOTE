@@ -15,7 +15,7 @@ import numpy as np
 import setproctitle
 
 # Import the tools you need from your utils file
-from defs_CoSMO import run_cosmo_supcon,run_l2_smote_variants
+from utils import DeepPolyCL_SMOTE
 
 data = 'cifar10'
 DATA_DIR = Path("/home/ubuntu/fai_run/project/prepared_data")
@@ -120,7 +120,7 @@ if __name__ == "__main__":
             current_fold_loaders = folds_data[fold_idx]
             current_fold_imbalanced_list = imbalanced_train_dataset_list[fold_idx] #run_single_fold_selfCLSMOTE_selfsup_warmup
 
-            f1,asca,g_mean,per_class_results = run_single_fold_selfCLSMOTE_selfsup_warmup(
+            f1,asca,g_mean,per_class_results = DeepPolyCL_SMOTE(
                                                 params, 
                                                 current_fold_loaders, 
                                                 current_fold_imbalanced_list
