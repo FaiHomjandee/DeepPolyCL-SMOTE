@@ -60,5 +60,5 @@ To run the experiments:
 
 ## Citations: 
 If you use this code in your research, please cite the following reference:
-> Homjandee, S. and Sinapiromsaran, K. (2025). Deepclsmote: Deep class-latent synthetic minority oversampling technique. https://doi.org/10.5281/zenodo.15362173. Code repository archived on Zenodo.
+> Homjandee, S. and Sinapiromsaran, K. (2026). DeepPolyCL-SMOTE: A Supervised Contrastive Framework for Deep Latent Space Oversampling https://doi.org/10.5281/zenodo.15362173. Code repository archived on Zenodo.
  
