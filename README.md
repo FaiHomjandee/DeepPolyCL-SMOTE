@@ -4,20 +4,20 @@
 
 Unlike conventional linear interpolation methods, DeepPolyCL-SMOTE produces smoother and more class-consistent samples by leveraging a well-structured latent representation, resulting in improved class separability and classification performance.
   
-## Datasets 📦
+## Datasets 📦:
 This implementation was evaluated on the following publicly available image datasets:
 * MNIST: The MNIST database of handwritten digits - [http://yann.lecun.com/exdb/mnist/](http://yann.lecun.com/exdb/mnist/)
 * Fashion-MNIST: A dataset of Zalando's article images (Xiao et al., 2017) - [https://github.com/zalandoresearch/fashion-mnist]  
 * CIFAR-10: The CIFAR-10 dataset - [https://www.cs.toronto.edu/~kriz/cifar.html](https://www.cs.toronto.edu/~kriz/cifar.html)  
 
-## Code Information 💻
+## Code Information 💻:
 The main files in this repository are:
 DeepPolyCLSMOTE/  
 ├── main.py        # Main training and evaluation pipeline  
 ├── utils.py       # Utility functions  
 ├── README.md      # Project documentation 
 
-## Usage Instructions 📌
+## Usage Instructions 📌:
 The entire pipeline—including data preparation, model training, latent-space oversampling, and evaluation—is implemented in main.py.
 
 To run the experiments:
@@ -30,7 +30,7 @@ To run the experiments:
     ```bash
     python main.py
     ```
-## Pipeline Overview
+## Pipeline Overview 🖼️:
 
 1. **Data Preparation**
    - Load datasets (MNIST, Fashion-MNIST, CIFAR-10)
@@ -47,7 +47,7 @@ To run the experiments:
 6. **Evaluation**
    - Compute performance metrics (F1-score, ASCA, and BHR) 
 
-## Requirements: 📚
+## Requirements 📚: 
 - Python (>=3.9)
 - PyTorch
 - torchvision
@@ -58,7 +58,7 @@ To run the experiments:
 - matplotlib
 - smote-variants
 
-## Citations: 
+## Citations 📍: 
 If you use this code in your research, please cite the following reference:
 > Homjandee, S. and Sinapiromsaran, K. (2026). DeepPolyCL-SMOTE: A Supervised Contrastive Framework for Deep Latent Space Oversampling [https://doi.org/10.5281/zenodo.15362173](https://doi.org/10.5281/zenodo.19536914). Code repository archived on Zenodo.
  
