@@ -48,9 +48,16 @@ To run the experiments:
    - Compute performance metrics (F1-score, ASCA, and BHR) 
 
 ## Requirements:
-PyTorch   
-NumPy  
-scikit-learn  
+- Python (>=3.9)
+- PyTorch
+- torchvision
+- NumPy
+- pandas
+- scikit-learn
+- SciPy
+- matplotlib
+- tqdm
+- smote-variants
 
 ## Citations: 
 If you use this code in your research, please cite the following reference:
