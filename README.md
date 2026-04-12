@@ -22,9 +22,11 @@ The entire pipeline—including data preparation, model training, latent-space o
 
 To run the experiments:
 1.  **Navigate to the project directory:**
+    ```bash
     cd DeepPolyCLSMOTE
+    ```
 
-2.  **Run the main script:**
+3.  **Run the main script:**
     python main.py
    
 ##  The pipeline overview:
