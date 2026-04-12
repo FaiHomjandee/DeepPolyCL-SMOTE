@@ -11,7 +11,7 @@ This implementation was evaluated on the following publicly available image data
 ## Code Information
 The main files in this repository are:
 DeepCLSMOTE/  
-├── main.py     # Jupyter Notebook containing all the code 
+├── main.py     # Jupyter Notebook containing all the code   
 ├── utils.py     # Jupyter Notebook containing all the code  
 ├── README.md            # This file 
 
