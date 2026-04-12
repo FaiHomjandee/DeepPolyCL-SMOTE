@@ -35,20 +35,15 @@ To run the experiments:
 1. **Data Preparation**
    - Load datasets (MNIST, Fashion-MNIST, CIFAR-10)
    - Create imbalanced (longtail) training sets
-
 2. **Baseline Training**
    - Train a CNN on imbalanced data
-
 3. **Phase I: Representation Learning**
    - Train an autoencoder using MSE loss
    - Apply centroid-guided supervised contrastive loss
-
 4. **Phase II: Latent-space Oversampling**
    - Generate synthetic samples using pf-SMOTE (Mesh topology)
-
 5. **Balanced Training**
    - Train a classifier (e.g., ResNet) on the augmented dataset
-
 6. **Evaluation**
    - Compute performance metrics (F1-score, ASCA, and BHR) 
 
