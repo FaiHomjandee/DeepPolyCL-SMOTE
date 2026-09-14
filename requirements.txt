@@ -1,0 +1,9 @@
+torch>=2.0
+torchvision
+numpy
+pandas
+scikit-learn
+scipy
+matplotlib
+tensorboard
+smote-variants
