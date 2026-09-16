@@ -17,6 +17,8 @@ Each dataset's official training partition is reconfigured into a long-tailed di
 * `{dataset}_folds_data.pth` — a list of 10 folds, each fold a `(train_loader_ae, val_loader, test_loader)` tuple of `torch.utils.data.DataLoader`.
 * `{dataset}_imbalanced_data.pth` — a list of 10 folds, each fold an indexable dataset (e.g. `torch.utils.data.Subset`) of `(image_tensor, label)` pairs, matching the imbalanced training set used to build `train_loader_ae` for that fold.
 
+For `main.py` (DeepPolyCL-SMOTE) specifically, CIFAR-10 is trained at its native 32x32 resolution rather than being downscaled to match MNIST/FMNIST's 28x28, so its two files are named with a `32` suffix instead: `cifar10_folds_data32.pth` and `cifar10_imbalanced_data32.pth`. `smote_baseline.py` uses the plain (no-suffix) filenames for all three datasets, including CIFAR-10.
+
 A script that generates these files from the raw MNIST/FMNIST/CIFAR-10 downloads, applying the long-tail rule above with a fixed, documented random seed per fold, will be added here; until then this is a known gap for anyone trying to reproduce Table 1 from scratch.
 
 ## Code Information 💻

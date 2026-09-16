@@ -61,10 +61,17 @@ class EncoderCL2(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
         )
 
-        self.fc_main = nn.Linear(self.dim_h * 8 * 3 * 3, self.n_z)
+        # Conv stack reduces a 28x28 input to a 3x3 spatial map, and a 32x32
+        # input (CIFAR-10's native resolution) to 4x4 — same layers, just a
+        # different bottleneck size, so this must match the actual input
+        # resolution rather than being hardcoded to the 28x28 case.
+        self.bottleneck = model_args.get('bottleneck_size', 3)
+        flat_dim = self.dim_h * 8 * self.bottleneck * self.bottleneck
+
+        self.fc_main = nn.Linear(flat_dim, self.n_z)
 
         self.fc_class = nn.ModuleList([
-            nn.Linear(self.dim_h * 8 * 3 * 3, self.n_z)
+            nn.Linear(flat_dim, self.n_z)
             for _ in range(self.num_class)
         ])
         for c in range(self.num_class):
@@ -96,7 +103,10 @@ class DecoderCL2(nn.Module):
         self.dim_h = model_args['dim_h']
         self.n_z = model_args['n_z']
         self.n_channel = model_args['n_channel']
-        self.fc = nn.Sequential(nn.Linear(self.n_z, self.dim_h * 8 * 3 * 3), nn.ReLU())
+        self.bottleneck = model_args.get('bottleneck_size', 3)
+        self.fc = nn.Sequential(
+            nn.Linear(self.n_z, self.dim_h * 8 * self.bottleneck * self.bottleneck), nn.ReLU()
+        )
         self.deconv = nn.Sequential(
             nn.ConvTranspose2d(self.dim_h * 8, self.dim_h * 4, 3, 1, 0), nn.BatchNorm2d(self.dim_h * 4), nn.ReLU(True),
             nn.ConvTranspose2d(self.dim_h * 4, self.dim_h * 2, 3, 1, 0), nn.BatchNorm2d(self.dim_h * 2), nn.ReLU(True),
@@ -106,7 +116,7 @@ class DecoderCL2(nn.Module):
 
     def forward(self, z):
         x = self.fc(z)
-        x = x.view(-1, self.dim_h * 8, 3, 3)
+        x = x.view(-1, self.dim_h * 8, self.bottleneck, self.bottleneck)
         return self.deconv(x)
 
 
@@ -302,6 +312,10 @@ def run_deeppoly_clsmote(
     dataset_name = params['dataset_name']
     epochs = params.get('epochs', 200)
     update_weight_every = params.get('update_weight_every', 200)
+    # Ablation toggle: False -> use uniform (all-ones) class weights instead of
+    # the effective-number/variance weighting, isolating the contribution of
+    # the weighting mechanism from the centroid-guided contrastive loss itself.
+    use_class_weighting = params.get('use_class_weighting', True)
 
     model_args = dict(model_args)
     model_args['n_z'] = params['n_z']
@@ -337,12 +351,15 @@ def run_deeppoly_clsmote(
         num_batches = 0
 
         if epoch == warmup_epochs or (epoch > warmup_epochs and epoch % update_weight_every == 0):
-            print(f"\nComputing class weights at epoch {epoch} ...")
-            latent_all, label_all = extract_latents(encoder, train_loader_ae, device)
-            class_weights = get_class_weights(
-                labels_list=label_all, Z=latent_all,
-                num_classes=model_args['num_class'], method="effective_variance",
-            ).to(device)
+            if use_class_weighting:
+                print(f"\nComputing class weights at epoch {epoch} ...")
+                latent_all, label_all = extract_latents(encoder, train_loader_ae, device)
+                class_weights = get_class_weights(
+                    labels_list=label_all, Z=latent_all,
+                    num_classes=model_args['num_class'], method="effective_variance",
+                ).to(device)
+            else:
+                class_weights = torch.ones(model_args['num_class'], device=device)
             print(f"Class weights: {class_weights}")
 
         for images, labs in train_loader_ae:
@@ -364,8 +381,11 @@ def run_deeppoly_clsmote(
             h2 = F.normalize(proj_head(view2), dim=1)
 
             if epoch < warmup_epochs:
-                epoch_weights = get_class_weights(labs, num_classes=model_args['num_class'],
-                                                   method="effective", beta=0.99).to(device)
+                if use_class_weighting:
+                    epoch_weights = get_class_weights(labs, num_classes=model_args['num_class'],
+                                                       method="effective", beta=0.99).to(device)
+                else:
+                    epoch_weights = torch.ones(model_args['num_class'], device=device)
                 loss_nt_xent = criterion_nt(h1, h2, labs, temperature, epoch_weights)
             else:
                 loss_nt_xent = criterion_nt(h1, h2, labs, temperature, class_weights)

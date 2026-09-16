@@ -80,7 +80,15 @@ MODEL_ARGS = {
     'n_channel': 3 if DATASET == 'cifar10' else 1,
     'num_class': 10,
     'batch_size': 256,
+    # 28x28 (MNIST/FMNIST) bottlenecks to a 3x3 spatial map after the conv
+    # stack; CIFAR-10, at its native 32x32, bottlenecks to 4x4 instead.
+    'bottleneck_size': 4 if DATASET == 'cifar10' else 3,
 }
+
+# CIFAR-10 must be trained at its native 32x32 resolution (as stated in the
+# paper's Datasets subsection), not a 28x28 file — so its prepared-data
+# filenames carry a '32' suffix; MNIST/FMNIST have no suffix.
+DATA_SUFFIX = '32' if DATASET == 'cifar10' else ''
 
 # Set to an int (e.g. 3) to only run the first N folds for a quick check.
 # Set to None (the default for an authoritative run) to use all 10 folds.
@@ -122,8 +130,8 @@ def main():
         results_list = []
 
     print(f"Loading {DATASET} data from {DATA_DIR} ...")
-    folds_data = torch.load(DATA_DIR / f"{DATASET}_folds_data.pth", weights_only=False)
-    imbalanced_train_dataset_list = torch.load(DATA_DIR / f"{DATASET}_imbalanced_data.pth", weights_only=False)
+    folds_data = torch.load(DATA_DIR / f"{DATASET}_folds_data{DATA_SUFFIX}.pth", weights_only=False)
+    imbalanced_train_dataset_list = torch.load(DATA_DIR / f"{DATASET}_imbalanced_data{DATA_SUFFIX}.pth", weights_only=False)
     if NUM_FOLDS is not None:
         folds_data = folds_data[:NUM_FOLDS]
         imbalanced_train_dataset_list = imbalanced_train_dataset_list[:NUM_FOLDS]
