@@ -63,10 +63,4 @@ See `requirements.txt`. Key dependencies: Python ≥3.9, PyTorch, torchvision, N
 
 ## Citations 📍
 If you use this code in your research, please cite:
-> Homjandee, S. and Sinapiromsaran, K. (2026). DeepPolyCL-SMOTE: A Supervised Contrastive Framework for Deep Latent Space Oversampling. Code archived on Zenodo.
-
-<!-- TODO (author action needed): the previous README's Zenodo citation had a
-     broken link — the visible text read ".../zenodo.15362173" but the actual
-     href pointed to ".../zenodo.19536914". Confirm which DOI is the correct,
-     final archived record and put a single, verified DOI link here before
-     merging — do not guess between the two numbers. -->
+> Homjandee, S. and Sinapiromsaran, K. (2026). DeepPolyCL-SMOTE: A Supervised Contrastive Framework for Deep Latent Space Oversampling. Code archived on Zenodo: https://doi.org/10.5281/zenodo.22822172. 
