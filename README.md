@@ -52,12 +52,14 @@ Both scripts train a downstream ResNet-18 classifier on the balanced dataset pro
 
 ## Pipeline Overview 🖼️
 ![Pipeline Diagram](pipeline.png)
-1. **Data Preparation** — long-tailed MNIST / Fashion-MNIST / CIFAR-10 training sets (see "Datasets" above).
+
+<!-- 1. 
+**Data Preparation** — long-tailed MNIST / Fashion-MNIST / CIFAR-10 training sets (see "Datasets" above).
 2. **Phase I: Representation Learning** — train an autoencoder with a combined reconstruction (MSE) and centroid-guided weighted contrastive loss.
 3. **Phase II: Latent-space Oversampling** — generate synthetic minority-class samples via pf-SMOTE (Mesh topology, via the `smote-variants` package) in the trained latent space.
 4. **Balanced Training** — train a ResNet-18 classifier on the resulting balanced (real + synthetic) dataset.
 5. **Evaluation** — compute F1, ASCA (macro-average recall), and BHR (Balanced Half Recall — mean recall over the bottom half of classes by recall) on the held-out balanced test set.
-
+-->
 ## Requirements 📚
 See `requirements.txt`. Key dependencies: Python ≥3.9, PyTorch, torchvision, NumPy, pandas, scikit-learn, SciPy, matplotlib, tensorboard, `smote-variants`.
 
