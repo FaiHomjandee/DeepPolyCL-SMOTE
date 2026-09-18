@@ -51,7 +51,7 @@ Per-dataset hyperparameters ($\alpha$, temperature, latent dimension, weight dec
 Both scripts train a downstream ResNet-18 classifier on the balanced dataset produced by their respective oversampling method and evaluate it on the held-out balanced test set using the same recipe (SGD, momentum 0.9, weight decay 0.05, Nesterov, `ReduceLROnPlateau`), so results are directly comparable across methods.
 
 ## Pipeline Overview 🖼️
-![Pipeline Diagram](assets/pipeline.png)
+![Pipeline Diagram](pipeline.png)
 1. **Data Preparation** — long-tailed MNIST / Fashion-MNIST / CIFAR-10 training sets (see "Datasets" above).
 2. **Phase I: Representation Learning** — train an autoencoder with a combined reconstruction (MSE) and centroid-guided weighted contrastive loss.
 3. **Phase II: Latent-space Oversampling** — generate synthetic minority-class samples via pf-SMOTE (Mesh topology, via the `smote-variants` package) in the trained latent space.
